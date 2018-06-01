@@ -1,0 +1,12 @@
+{
+	"name": "led",
+	"version": "0.0.1",
+	"dependencies": {
+		"winston": "^2.4.2",
+		"config": "^1.30.0",
+		"johnny-five": "^0.15.0",
+		"raspi-io": "^9.0.0",
+		"pigpio": "^1.0.0"
+	},
+	"devDependencies": {}
+}

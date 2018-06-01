@@ -1,0 +1,22 @@
+{
+	"logger": {
+		"console": true,
+		"_console": false,
+		"_console": "debug",
+		"_console": "error",
+		"fileDir": "/var/log/node/",
+		"fileExt": ".log",
+		"file": {
+			"app": "debug"
+		},
+		"_file": {
+			"app": "error",
+			"debug": "debug",
+			"info": "info",
+			"warn": "warn",
+			"error": "error"
+		}
+	},
+	"pythonInterface": {
+	}
+}

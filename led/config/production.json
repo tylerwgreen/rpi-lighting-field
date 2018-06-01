@@ -1,0 +1,9 @@
+{
+	"console": {
+		"logLevel": "error"
+	},
+	"logger": {
+		"logFile": "/var/log/production.log",
+		"level": "error"
+	}
+}

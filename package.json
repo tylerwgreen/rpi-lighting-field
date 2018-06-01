@@ -1,0 +1,11 @@
+{
+	"name": "audio-visualizer",
+	"version": "0.0.1",
+	"dependencies": {
+		"winston": "^2.4.2",
+		"config": "^1.30.0",
+		"pigpio": "^1.0.0",
+		"python-shell": "^0.5.0"
+	},
+	"devDependencies": {}
+}

@@ -1,0 +1,9 @@
+{
+	"console": {
+		"logLevel": "debug"
+	},
+	"logger": {
+		"logFile": "/var/log/development.log",
+		"level": "debug"
+	}
+}

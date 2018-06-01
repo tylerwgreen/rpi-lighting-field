@@ -1,0 +1,9 @@
+{
+	"console": {
+		"logLevel": "info"
+	},
+	"logger": {
+		"logFile": null,
+		"level": null
+	}
+}
