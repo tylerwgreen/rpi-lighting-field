@@ -1,4 +1,3 @@
 *.log
 node_modules
-_*
-/files/*
+/assets/audio/*
