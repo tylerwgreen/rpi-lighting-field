@@ -2,10 +2,14 @@
 
 import sys
 import json
+import logging
 
 class NodeInterface:
 
 	commands = {}
+	
+	def __init__(self):
+		self.logger = logging.getLogger(__name__)
 	
 	def registerCommand(self, commandId, command):
 		self.commands[commandId] = command
@@ -77,11 +81,13 @@ class NodeInterface:
 		self._printJson({'data': [data]})
 	
 	def _error(self, code, title, detail):
-		self._printJson({'errors': [{
+		errorObj = {
 			'code': code,
 			'title': title,
 			'detail': detail,
-		}]})
+		}
+		self.logger.error(errorObj)
+		self._printJson({'errors': [errorObj]})
 	
 	def _decodeJson(self, str):
 		try:
@@ -104,7 +110,9 @@ class NodeInterface:
 		sys.stdout.flush()
 	
 	def _handleException(self, Exception, context, error):
-		sys.exit('Exception: {context} - {error}'.format(context = context, error = error))
+		errorMsg = 'Exception: {context} - {error}'.format(context = context, error = error)
+		self.logger.critical(errorMsg)
+		sys.exit(errorMsg)
 	
 	def message(self, message):
 		self._printJson({'data': {
@@ -118,6 +126,15 @@ class NodeInterface:
 	def audioPeaks(self, id, data):
 		self._printJson({'data': {
 			'type': 'audioPeaks',
+			'id': id,
+			'attributes': {
+				'data': data
+			}
+		}})
+	
+	def audioComplete(self, id, data):
+		self._printJson({'data': {
+			'type': 'audioComplete',
 			'id': id,
 			'attributes': {
 				'data': data

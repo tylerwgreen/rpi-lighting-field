@@ -10,7 +10,6 @@ var app = {
 			config: this.config.get('logger'),
 			logDir: __dirname
 		});
-		
 		/* var interval = 1000;
 		for(var i = 1; i <= 20; i++){
 			// console.log(i);
@@ -22,21 +21,24 @@ var app = {
 		} */
 		// led1.fadeOut(250);
 		this.pythonInterface = pythonInterface.init({
-			config: this.config.get('pythonInterface'),
-			logger: this.logger,
-			ledLo: new led(2),
-			ledMid: new led(10),
-			ledHi: new led(20),
-			appFile: 'modules/python/App.py'
+			config:		this.config.get('pythonInterface'),
+			logger:		this.logger,
+			ledLo:		new led(2),
+			ledMid:		new led(10),
+			ledHi:		new led(20),
+			scriptPath:	__dirname + '/modules/python/',
+			script:		'App.py'
 		});
 		// this.pythonInterface.testTest()
+// return;
 		// return;
 		// WAVE FILES
 		// var waveFile = '0_16.wav' # single freq
 		// var waveFile = 'tone.wav' # freq sweep
 		// var waveFile = 'technologic.wav'
 		// var waveFile = 'technologic-real.wav'
-		var waveFile = 'getaway-16-44.wav'
+		var waveFile = 'cello.wav'
+		// var waveFile = 'getaway-16-44.wav'
 		// var waveFile = 'getaway-16-48.wav'
 		// var waveFile = 'drums-01.wav'
 		// var waveFile = '1k-octaves.wav'
@@ -49,7 +51,8 @@ var app = {
 		// var waveFile = '440-mono-quiet.wav' # 440 khz tone quieter than 440-mono.wav
 		// var waveFile = '440-mono-16-44-0db.wav' # 440 khz tone
 		this.pythonInterface.sendCommand('play', {
-			'file': waveFile
+			'file': __dirname + '/assets/audio/' + waveFile
+			// 'file': waveFile
 		});
 	}
 }

@@ -1,34 +1,40 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-import sys
 import os
-# from StdoutSupressor import StdoutSupressor
+import logging
+
 from NodeInterface import NodeInterface
 from AudioAnalyzer import AudioAnalyzer
 
 class App:
 
-	# stdoutSupressor = None
-	# nodeInterface = None
-	# audioAnalyzer = None
+	nodeInterface = None
+	audioAnalyzer = None
 
 	def __init__(self):
+		# configure dirs
+		appDir = os.path.dirname(os.path.realpath(__file__)) + '/../..'
+		logDir = appDir + '/var/log/python'
+		# configure logger
+		logging.basicConfig(
+			filename = logDir + '/app.log',
+			level = logging.DEBUG
+		)
+		self.logger = logging.getLogger(__name__)
 		# configure dependencies
-		self.stdoutSupressor = StdoutSupressor(sys, os)
 		self.nodeInterface = NodeInterface()
 		self.registerNodeInterfaceCommands()
 		# configure audioAnalyzer and suppress warning/errors
-		self.stdoutSupressor.supress()
 		self.audioAnalyzer = AudioAnalyzer(
-			self.nodeInterface,
-			self.stdoutSupressor
+			self.nodeInterface
 		)
-		self.stdoutSupressor.restore()
 		# App is configured, start the main loop
-		self.nodeInterface.message(self.stdoutSupressor.flush())
 		self.nodeInterface.message('App.__init__ success')
-		self.mainLoop()
+		# self.play({'file': '/home/pi/projects/rpi-lighting-field/assets/audio/440-stereo.wav'})
+		# self.play({'file': '/home/pi/projects/rpi-lighting-field/assets/audio/cello.wav'})
+		self.play({'file': '/home/pi/projects/rpi-lighting-field/assets/audio/audiocheck.net_whitenoisegaussian.wav'})
+		# self.mainLoop()
 
 	def mainLoop(self):
 		while True:
@@ -51,6 +57,8 @@ if __name__ == '__main__':
 	app = App()
 
 '''
+{"data":{"type":"command","id":"play","attributes":{"file":"/home/pi/projects/rpi-lighting-field/assets/audio/cello.wav"}}}
+{"data":{"type":"command","id":"play","attributes":{"file":"/home/pi/projects/rpi-lighting-field/assets/audio/440-stereo.wav"}}}
 {"data":[{"type":"command","id":"play"},{"type":"command","id":"stop"}]}
 {"data":[{"type":"command","id":"play"},{"type":"command","id":"play"},{"type":"command","id":"stop"}]}
 {"data":{"type":"command","id":"play"}}

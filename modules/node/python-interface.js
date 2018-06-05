@@ -8,8 +8,10 @@ var pythonInterface = {
 		this.ledLo = params.ledLo;
 		this.ledMid = params.ledMid;
 		this.ledHi = params.ledHi;
-		this.pyShell = new pyShell(params.appFile, {
-			mode:	'json'
+		// this.logger.info('pythonInterface.init', params);
+		this.pyShell = new pyShell(params.script, {
+			mode:		'json',
+			scriptPath:	params.scriptPath
 		});
 		this._configureListeners();
 		return this;
@@ -122,9 +124,9 @@ var pythonInterface = {
 	testTest: function(){
 		// this.logger.info('pythonInterface.testTest');
 		// console.log(this);
-		// this.logger.info('test');
+		this.logger.info('test');
 		// this.pyShell.send({data:{type:'command',id:'getCommands'}});
-		this.pyShell.send({data:{type:'command',id:'play'}});
+		// this.pyShell.send({data:{type:'command',id:'play'}});
 		// this.pyShell.send({data:{type:'command',id:'removePlay'}});
 		// this.pyShell.send({data:{type:'command',id:'play'}});
 		// this.pyShell.send({data:{type:'command',id:'getInterval'}});

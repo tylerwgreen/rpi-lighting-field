@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
+import logging
 from cStringIO import StringIO
 
 class StdoutSupressor():
@@ -8,6 +9,7 @@ class StdoutSupressor():
 	def __init__(self, sys, os):
 		self.os = os
 		self.sys = sys
+		self.logger = logging.getLogger(__name__)
 	
 	def supress(self):
 		self.data = None
@@ -25,6 +27,8 @@ class StdoutSupressor():
 		self.os.close(self.null_fds[1])
 		self.sys.stdout = self.old_stdout
 		self.data = self.mystdout.getvalue()
-	
+		if len(self.data) > 0:
+			self.logger.info(['suppressed', self.data])
+
 	def flush(self):
 		return self.data
