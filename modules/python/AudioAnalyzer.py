@@ -15,9 +15,21 @@ numpy.set_printoptions(threshold = numpy.nan)
 
 from StdoutSupressor import StdoutSupressor
 
+#logOctaveRanges() - Octaves: 10
+#   20    40 [0.00045351473922902497, 0.0009070294784580499]
+#   40    80 [0.0009070294784580499, 0.0018140589569160999]
+#   80   160 [0.0018140589569160999, 0.0036281179138321997]
+#  160   320 [0.0036281179138321997, 0.0072562358276643995]
+#  320   640 [0.0072562358276643995, 0.014512471655328799]
+#  640  1280 [0.014512471655328799, 0.029024943310657598]
+# 1280  2560 [0.029024943310657598, 0.058049886621315196]
+# 2560  5120 [0.058049886621315196, 0.11609977324263039]
+# 5120 10240 [0.11609977324263039, 0.23219954648526078]
+#10240 20000 [0.23219954648526078, 0.45351473922902497]
+
 class AudioAnalyzer:
 	# CONFIG SETTINGS
-	framesPerBuffer = 512 * 4 # the resolution of stream samples
+	framesPerBuffer = 1000 * 2 # the resolution of stream samples
 	# CLASS VARS
 	pyAudioInstance = None
 	waveFileData = None
@@ -39,6 +51,7 @@ class AudioAnalyzer:
 		self.pyAudioInstance = pyaudio.PyAudio()
 		self.stdoutSupressor.restore()
 	
+	# @profile
 	def play(self, file):
 		self.waveFile = file
 		self.readWav()
@@ -106,6 +119,7 @@ class AudioAnalyzer:
 				# 3 return paAbort to PortAudio to stop the stream.
 		)
 
+	# @profile
 	def pyAudioStreamCallback(
 		self,
 		in_data,		# recorded data if input = True; else None
@@ -129,14 +143,15 @@ class AudioAnalyzer:
 			dataFrames,			# a byte array whose length should be the (frame_count * channels * bytes-per-channel) if output = True or None if output = False.
 			pyaudio.paContinue	# must be either paContinue, paComplete or paAbort (one of PortAudio Callback Return Code). When output = True and out_data does not contain at least frame_count frames, paComplete is assumed for flag.
 		)
-		
+	
+	# @profile
 	def mainLoop(self):
 		while self.pyAudioStream.is_active():
 			if len(self.waveFileDataFramesData) > 0:
 				self.analyzeWaveFileDataFrames()
-			# else:
+			else:
 				# wait to check while again
-				# time.sleep(.1)
+				time.sleep(.1)
 		# Close the stream
 		self.pyAudioStream.close()
 		self.waveFileData.close()
@@ -144,8 +159,9 @@ class AudioAnalyzer:
 		self.pyAudioInstance.terminate()
 		# exit
 		self.nodeInterface.audioComplete(None, True)
-		sys.exit()
+		# sys.exit()
 
+	# @profile
 	def analyzeWaveFileDataFrames(self):
 		fftData = numpy.fft.fft(self.waveFileDataFramesData) # The truncated or zero-padded input, transformed along the axis
 		freqs = numpy.fft.fftfreq(len(fftData))
@@ -157,90 +173,90 @@ class AudioAnalyzer:
 		# self.printOctavesAmplitudes(octavesAmplitudes)
 		# self.printOctaveAmplitudePeaks(octavesAmplitudes)
 	
+	# @profile
 	def analyzeoctavesAmplitudes(self, fftData, freqs):
 		# build octavesAmplitudes container
-		octavesAmplitudes = []
-		for octaveRange in self.octaveRanges['float']:
-			octavesAmplitudes.append([])
+		# profiling revealed it's faster to define buckets rather than build with a loop
+		octavesAmplitudes = [
+			[],
+			[],
+			[],
+			[],
+			[],
+			[],
+			[],
+			[],
+			[],
+			[],
+		]
+		# profiling revealed it was indeed faster to throw away the negative half of the wave form
+		# no need to analyze the negative half of the wave although it may be more accurate to analyze
+		# however, since we are using the freq index to find the amp for the freq, this will not work
+		# freqs = [item for item in freqs if item >= 0]
+		# profiling revealed this was fastest way to get index
 		for freqIdx, freq in enumerate(freqs):
-			# no need to analyze the negative half of the wave although it may be more accurate to analyze negative half
-			if freq < 0:
+			if freq <= 0:
 				continue
-			# freq = abs(freq)
-			amp = abs(fftData[freqIdx])
-			# frequency ranges hard coded from self.octaveRanges['float']
-			if              freq <= 0.0009:
-				# bucket = 0
-				octavesAmplitudes[0].append(amp)
-			elif 0.00090 < freq <= 0.00181:
-				# bucket = 1
-				octavesAmplitudes[1].append(amp)
-			elif 0.00181 < freq <= 0.00362:
-				# bucket = 2
-				octavesAmplitudes[2].append(amp)
-			elif 0.00362 < freq <= 0.00725:
-				# bucket = 3
-				octavesAmplitudes[3].append(amp)
-			elif 0.00725  < freq <= 0.0145:
-				# bucket = 4
-				octavesAmplitudes[4].append(amp)
-			elif 0.01451   < freq <= 0.029:
-				# bucket = 5
-				octavesAmplitudes[5].append(amp)
-			elif 0.02902   < freq <= 0.116:
-				# bucket = 6
-				octavesAmplitudes[6].append(amp)
-			elif 0.11609   < freq <= 0.232:
-				# bucket = 7
-				octavesAmplitudes[7].append(amp)
-			elif 0.23219   < freq <= 0.453:
-				# bucket = 8
-				octavesAmplitudes[8].append(amp)
-			elif 0.45351   < freq:
-				# bucket = 9
-				octavesAmplitudes[9].append(amp)
-			else:
-				# bucket = 9
-				octavesAmplitudes[9].append(amp)
-			# if                           freq <= 0.0009070294784580499:
-				# # bucket = 0
-				# octavesAmplitudes[0].append(amp)
-			# elif 0.0009070294784580499 < freq <= 0.0018140589569160999:
-				# # bucket = 1
-				# octavesAmplitudes[1].append(amp)
-			# elif 0.0018140589569160999 < freq <= 0.0036281179138321997:
-				# # bucket = 2
-				# octavesAmplitudes[2].append(amp)
-			# elif 0.0036281179138321997 < freq <= 0.0072562358276643995:
-				# # bucket = 3
-				# octavesAmplitudes[3].append(amp)
-			# elif 0.0072562358276643995  < freq <= 0.014512471655328799:
-				# # bucket = 4
-				# octavesAmplitudes[4].append(amp)
-			# elif 0.014512471655328799   < freq <= 0.029024943310657598:
-				# # bucket = 5
-				# octavesAmplitudes[5].append(amp)
-			# elif 0.029024943310657598   < freq <= 0.11609977324263039:
-				# # bucket = 6
-				# octavesAmplitudes[6].append(amp)
-			# elif 0.11609977324263039   < freq <= 0.23219954648526078:
-				# # bucket = 7
-				# octavesAmplitudes[7].append(amp)
-			# elif 0.23219954648526078   < freq <= 0.45351473922902497:
-				# # bucket = 8
-				# octavesAmplitudes[8].append(amp)
-			# elif 0.45351473922902497   < freq:
-				# # bucket = 9
-				# octavesAmplitudes[9].append(amp)
-			# else:
-				# # bucket = 9
-				# octavesAmplitudes[9].append(amp)
-			# self.printOctaveAmplitudeBuckets(freq, amp, bucket)
+			octavesAmplitudes[self.getFreqBucketTopDown(freq)].append(abs(fftData[freqIdx]))
 		# self.printOctaveAmplitudeComparisions(fftData, freqs, octavesAmplitudes)
-		for octaveIdx, octaveAmplitudes in enumerate(octavesAmplitudes):
-			octaveAmpMean = self.calculateAmplitude(numpy.mean(octaveAmplitudes))
-			octavesAmplitudes[octaveIdx] = octaveAmpMean
+		# profiling showed removing the loop was faster, just list manually
+		
+		# octavesAmplitudes[0] = self.calculateAmplitude(numpy.mean(octavesAmplitudes[0]))
+		# octavesAmplitudes[1] = self.calculateAmplitude(numpy.mean(octavesAmplitudes[1]))
+		# octavesAmplitudes[2] = self.calculateAmplitude(numpy.mean(octavesAmplitudes[2]))
+		# octavesAmplitudes[3] = self.calculateAmplitude(numpy.mean(octavesAmplitudes[3]))
+		# octavesAmplitudes[4] = self.calculateAmplitude(numpy.mean(octavesAmplitudes[4]))
+		# octavesAmplitudes[5] = self.calculateAmplitude(numpy.mean(octavesAmplitudes[5]))
+		# octavesAmplitudes[6] = self.calculateAmplitude(numpy.mean(octavesAmplitudes[6]))
+		# octavesAmplitudes[7] = self.calculateAmplitude(numpy.mean(octavesAmplitudes[7]))
+		# octavesAmplitudes[8] = self.calculateAmplitude(numpy.mean(octavesAmplitudes[8]))
+		# octavesAmplitudes[9] = self.calculateAmplitude(numpy.mean(octavesAmplitudes[9]))
+		
+		# linearized to match pink noise
+		octavesAmplitudes[0] = self.calculateAmplitude(numpy.mean(octavesAmplitudes[0])) / 34
+		octavesAmplitudes[1] = self.calculateAmplitude(numpy.mean(octavesAmplitudes[1])) / 22
+		octavesAmplitudes[2] = self.calculateAmplitude(numpy.mean(octavesAmplitudes[2])) / 15
+		octavesAmplitudes[3] = self.calculateAmplitude(numpy.mean(octavesAmplitudes[3])) / 10
+		octavesAmplitudes[4] = self.calculateAmplitude(numpy.mean(octavesAmplitudes[4])) / 7
+		octavesAmplitudes[5] = self.calculateAmplitude(numpy.mean(octavesAmplitudes[5])) / 5
+		octavesAmplitudes[6] = self.calculateAmplitude(numpy.mean(octavesAmplitudes[6])) / 2.7
+		octavesAmplitudes[7] = self.calculateAmplitude(numpy.mean(octavesAmplitudes[7])) / 1.7
+		octavesAmplitudes[8] = self.calculateAmplitude(numpy.mean(octavesAmplitudes[8])) / 1.2
+		octavesAmplitudes[9] = self.calculateAmplitude(numpy.mean(octavesAmplitudes[9]))
 		return octavesAmplitudes
+
+	def getFreqBucketTopDown(self, freq):
+		# profiling revealed comparing a shorter num was not faster
+		# because there is more data in the upper freqs, compare those first
+		if	freq > 0.45351473922902497:
+			return 9
+		elif	freq > 0.23219954648526078:
+			return 8
+		elif	freq > 0.11609977324263039:
+			return 7
+		elif	freq > 0.029024943310657598:
+			return 6
+		elif	freq > 0.014512471655328799:
+			return 5
+		elif	freq > 0.0072562358276643995:
+			return 4
+		elif	freq > 0.0036281179138321997:
+			return 3
+		elif	freq > 0.0018140589569160999:
+			return 2
+		elif	freq > 0.0009070294784580499:
+			return 1
+		else:
+			return 0
+
+	# CALCULATIONS
+	
+	def calculateFreqHertz(self, freq):
+		return int(abs((freq * self.waveFileFreqRate) / self.waveFileChannels))
+	
+	def calculateAmplitude(self, amp):
+		return int((amp / self.waveFileChannels) / 100)
+		# return int((amp / self.waveFileChannels) / 1000)
 
 	# PRINT FUNCTIONS
 	
@@ -305,7 +321,7 @@ class AudioAnalyzer:
 		freqIdx = numpy.argmax(numpy.abs(fftData))
 		freqHertz = self.calculateFreqHertz(freqs[freqIdx])
 		amplitude = self.calculateAmplitude(fftData[freqIdx])
-		print('logFreqAmpPeak() - freq {freqHertz} amp {amplitude}'.format(
+		print('printFreqAmpPeak() - freq {freqHertz} amp {amplitude}'.format(
 			freqHertz = ('{:>6d}'.format(int(freqHertz))),
 			amplitude = ('{:>9d}'.format(int(amplitude)))
 		))
@@ -329,12 +345,5 @@ class AudioAnalyzer:
 				self.octaveRanges['float'][idx]
 				
 			)
-		self.logger.info('logOctaveRanges() - ' + out);
+		print('printOctaveRanges() - ' + out);
 	
-	# CALCULATIONS
-	
-	def calculateFreqHertz(self, freq):
-		return abs((freq * self.waveFileFreqRate) / self.waveFileChannels)
-	
-	def calculateAmplitude(self, amp):
-		return int(abs(amp / self.waveFileChannels) / 1000)

@@ -16,6 +16,9 @@ var pythonInterface = {
 		this._configureListeners();
 		return this;
 	},
+	registerCommand: function(commandId, command){
+		this.commands[commandId] = command
+	},
 	_configureListeners: function(){
 		// this.logger.info('pythonInterface._configureListeners');
 		this.pyShell.on('message', this._pyShellMessage);
@@ -26,59 +29,15 @@ var pythonInterface = {
 		// pythonInterface.logger.info('pythonInterface._pyShellMessage');
 		if(json){
 			if(json.data){
-				pythonInterface.logger.debug('pythonInterface._pyShellMessage');
-				if(json.data.isArray){
+				// pythonInterface.logger.debug('pythonInterface._pyShellMessage');
+				if(json.data.isArray)
 					var data = json.data[0];
-				}else{
+				else
 					var data = json.data;
-				}
-				if(data.type === 'audioPeaks'){
-					if(typeof data.attributes.data[0] !== 'undefined'){
-						/*
-						0,	# [20, 40]
-						1,	# [40, 80]
-						2,	# [80, 160]
-						3,	# [160, 320]
-						4,	# [320, 640]
-						5,	# [640, 1280]
-						6,	# [1280, 2560]
-						7,	# [2560, 5120]
-						8,	# [5120, 10240]
-						9	# [10240, 20000]
-						
-						Bass (Kick) Drum	60Hz - 100Hz	35 - 115
-						Snare Drum	120 Hz - 250 Hz	
-						Cymbal - Hi-hat	3 kHz - 5 kHz	4 - 110
-						*/
-						// var peakLo = data.attributes.data[0] + data.attributes.data[1]  + data.attributes.data[2];
-						var peakLo = data.attributes.data[0] + data.attributes.data[1];
-						// var peakMid = data.attributes.data[4] + data.attributes.data[5] + data.attributes.data[6];
-						// var peakMid = data.attributes.data[2] + data.attributes.data[3];
-						var peakMid = data.attributes.data[3] + data.attributes.data[4];
-						var peakHi = data.attributes.data[8] + data.attributes.data[9];
-						var peakLoTop = 5500;
-						var peakMidTop = 1300;
-						var peakHiTop = 30;
-						// if(peakLo >= peakLoTop - 500) console.log(peakLo);
-						// if(peakMid >= peakMidTop - 150) console.log(peakMid);
-						if(peakHi >= peakHiTop - 15) console.log(peakHi);
-						if(peakLo >= peakLoTop){
-							// console.log('peakLo: ' + peakLo);
-							pythonInterface.ledLo.fadeOut(100);
-						}
-						if(peakMid >= peakMidTop){
-							// console.log('peakMid: ' + peakMid);
-							pythonInterface.ledMid.fadeOut(100);
-						}
-						if(peakHi >= peakHiTop){
-							// console.log('peakHi: ' + peakHi);
-							pythonInterface.ledHi.fadeOut(50);
-						}
-					}
-				}else{
-					console.log(data);
-				}
-				// pythonInterface.logger.debug(data.attributes.result);
+				if(pythonInterface.commands.hasOwnProperty(data.type))
+					pythonInterface.commands[data.type](data.attributes);
+				else
+					throw new Error('Undefined data.type: ' + data.type);
 			}else if(json.errors){
 				pythonInterface._handlJsonErrors(json.errors);
 			}else{
